@@ -31,7 +31,7 @@ services:
 
   backend:
     image: ${BACKEND_IMAGE:-jasamine/fundval-backend:latest}
-    command: gunicorn fundval.wsgi:application --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS:-4} --access-logfile - --error-logfile -
+    command: gunicorn fundval.wsgi:application --bind 0.0.0.0:8000 --workers ${GUNICORN_WORKERS:-4} --timeout ${GUNICORN_TIMEOUT:-90} --access-logfile - --error-logfile -
     volumes:
       # 生产环境：只挂载配置目录，不挂载代码
       # 开发环境：取消注释下面这行以挂载本地代码
