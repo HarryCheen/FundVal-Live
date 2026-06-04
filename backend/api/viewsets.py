@@ -1628,30 +1628,55 @@ class UserPreferenceViewSet(viewsets.ViewSet):
 
         pref = UserPreference.objects.filter(user=request.user).first()
         preferred_source = pref.preferred_source if pref else 'eastmoney'
+        theme_mode = pref.theme_mode if pref else 'light'
 
-        return Response({'preferred_source': preferred_source})
+        return Response({'preferred_source': preferred_source, 'theme_mode': theme_mode})
 
     def update(self, request, pk=None):
         """
         PUT /api/preferences/
-        更新用户偏好（不存在则创建）
+        更新用户偏好（不存在则创建），preferred_source 和 theme_mode 独立更新
         """
         from .models import UserPreference
 
+        theme_mode = request.data.get('theme_mode')
         preferred_source = request.data.get('preferred_source')
 
-        if not preferred_source or preferred_source not in self.VALID_SOURCES:
+        # 检查 theme_mode
+        if theme_mode and theme_mode not in dict(UserPreference.THEME_CHOICES):
+            return Response(
+                {'error': '无效的主题模式，可选值：light, dark'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # 检查 preferred_source
+        if preferred_source and preferred_source not in self.VALID_SOURCES:
             return Response(
                 {'error': f'无效的数据源，可选值：{", ".join(self.VALID_SOURCES)}'},
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        defaults = {}
+        if preferred_source:
+            defaults['preferred_source'] = preferred_source
+        if theme_mode:
+            defaults['theme_mode'] = theme_mode
+
+        if not defaults:
+            return Response(
+                {'error': '请提供 preferred_source 或 theme_mode'},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         pref, _ = UserPreference.objects.update_or_create(
             user=request.user,
-            defaults={'preferred_source': preferred_source},
+            defaults=defaults,
         )
 
-        return Response({'preferred_source': pref.preferred_source})
+        return Response({
+            'preferred_source': pref.preferred_source,
+            'theme_mode': pref.theme_mode,
+        })
 
 
 class AIConfigViewSet(viewsets.ViewSet):

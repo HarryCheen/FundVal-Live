@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, theme } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
+import { usePreference } from './contexts/PreferenceContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import InitializePage from './pages/InitializePage';
@@ -39,13 +40,16 @@ export const isNativeApp = () => {
   return false;
 };
 
-function App() {
+function AppInner() {
+  const { themeMode } = usePreference();
   return (
-    <ConfigProvider locale={zhCN}>
-      <AuthProvider>
-        <AccountProvider>
-          <PreferenceProvider>
-            <Router>
+    <ConfigProvider
+      locale={zhCN}
+      theme={{
+        algorithm: themeMode === 'dark' ? theme.darkAlgorithm : theme.defaultAlgorithm,
+      }}
+    >
+      <Router>
               <Routes>
               <Route
                 path="/"
@@ -142,10 +146,19 @@ function App() {
               />
             </Routes>
           </Router>
-        </PreferenceProvider>
-        </AccountProvider>
-      </AuthProvider>
     </ConfigProvider>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AccountProvider>
+        <PreferenceProvider>
+          <AppInner />
+        </PreferenceProvider>
+      </AccountProvider>
+    </AuthProvider>
   );
 }
 

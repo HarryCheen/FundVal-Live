@@ -5,6 +5,7 @@ import FundsPage from '../pages/FundsPage';
 import * as api from '../api';
 
 // Mock API
+vi.mock('../contexts/PreferenceContext', () => ({ usePreference: () => ({ preferredSource: 'eastmoney', updatePreference: vi.fn(), themeMode: 'light', updateThemeMode: vi.fn(), loading: false }), PreferenceProvider: ({ children }) => children }));
 vi.mock('../api', () => ({
   fundsAPI: {
     list: vi.fn(),

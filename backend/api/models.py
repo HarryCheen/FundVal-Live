@@ -482,11 +482,21 @@ class UserPreference(models.Model):
         ('yangjibao', '养基宝'),
     ]
 
+    THEME_CHOICES = [
+        ('light', '浅色'),
+        ('dark', '深色'),
+    ]
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='preference')
     preferred_source = models.CharField(
         max_length=50,
         choices=SOURCE_CHOICES,
         default='eastmoney',
+    )
+    theme_mode = models.CharField(
+        max_length=10,
+        choices=THEME_CHOICES,
+        default='light',
     )
 
     class Meta:

@@ -94,7 +94,11 @@ export const watchlistsAPI = {
 // 用户偏好
 export const preferencesAPI = {
   get: () => api.get('/preferences/'),
-  update: (preferredSource) => api.put('/preferences/', { preferred_source: preferredSource }),
+  update: (data) => {
+    // 兼容旧调用方式：传 string 视为 preferred_source
+    const body = typeof data === 'string' ? { preferred_source: data } : data;
+    return api.put('/preferences/', body);
+  },
 };
 
 // AI配置与分析

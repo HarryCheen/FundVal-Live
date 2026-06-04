@@ -5,6 +5,7 @@ const PreferenceContext = createContext();
 
 export const PreferenceProvider = ({ children }) => {
   const [preferredSource, setPreferredSource] = useState('eastmoney');
+  const [themeMode, setThemeMode] = useState('light');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,10 +16,11 @@ export const PreferenceProvider = ({ children }) => {
     try {
       const res = await preferencesAPI.get();
       setPreferredSource(res.data.preferred_source || 'eastmoney');
+      setThemeMode(res.data.theme_mode || 'light');
     } catch (error) {
-      console.error('加载数据源偏好失败', error);
-      // 失败时使用默认值
+      console.error('加载偏好失败', error);
       setPreferredSource('eastmoney');
+      setThemeMode('light');
     } finally {
       setLoading(false);
     }
@@ -34,8 +36,21 @@ export const PreferenceProvider = ({ children }) => {
     }
   };
 
+  const updateThemeMode = async (mode) => {
+    try {
+      await preferencesAPI.update({ theme_mode: mode });
+      setThemeMode(mode);
+    } catch (error) {
+      console.error('更新主题偏好失败', error);
+    }
+  };
+
   return (
-    <PreferenceContext.Provider value={{ preferredSource, updatePreference, loading }}>
+    <PreferenceContext.Provider value={{
+      preferredSource, updatePreference,
+      themeMode, updateThemeMode,
+      loading,
+    }}>
       {children}
     </PreferenceContext.Provider>
   );

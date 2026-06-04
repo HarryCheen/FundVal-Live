@@ -3,6 +3,7 @@ import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import AccountsPage from '../pages/AccountsPage';
 
+vi.mock('../contexts/PreferenceContext', () => ({ usePreference: () => ({ preferredSource: 'eastmoney', updatePreference: vi.fn(), themeMode: 'light', updateThemeMode: vi.fn(), loading: false }), PreferenceProvider: ({ children }) => children }));
 vi.mock('../api', () => ({
   accountsAPI: {
     list: vi.fn(),

@@ -5,6 +5,7 @@ import LoginPage from '../pages/LoginPage';
 import * as api from '../api';
 
 // Mock API
+vi.mock('../contexts/PreferenceContext', () => ({ usePreference: () => ({ preferredSource: 'eastmoney', updatePreference: vi.fn(), themeMode: 'light', updateThemeMode: vi.fn(), loading: false }), PreferenceProvider: ({ children }) => children }));
 vi.mock('../api', () => ({
   login: vi.fn(),
 }));

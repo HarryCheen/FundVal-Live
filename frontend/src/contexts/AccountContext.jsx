@@ -32,7 +32,6 @@ export const AccountProvider = ({ children }) => {
       return data;
     } catch (err) {
       setError(err.message || '加载账户失败');
-      throw err;
     } finally {
       setLoading(false);
     }

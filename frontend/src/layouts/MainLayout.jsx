@@ -2,6 +2,8 @@ import { Layout, Menu, Dropdown, Space, Grid } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FundOutlined,
+  SunOutlined,
+  MoonOutlined,
   AccountBookOutlined,
   PieChartOutlined,
   StarOutlined,
@@ -11,6 +13,7 @@ import {
   GithubOutlined,
 } from '@ant-design/icons';
 import { useAuth } from '../contexts/AuthContext';
+import { usePreference } from '../contexts/PreferenceContext';
 import Footer from '../components/Footer';
 
 const { Header, Sider, Content } = Layout;
@@ -20,6 +23,7 @@ const MainLayout = ({ children }) => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, logout } = useAuth();
+  const { themeMode, updateThemeMode } = usePreference();
   const screens = useBreakpoint();
 
   // 判断是否为移动端（< 768px）
@@ -108,6 +112,12 @@ const MainLayout = ({ children }) => {
             >
               <GithubOutlined />
             </a>
+            <span
+              onClick={() => updateThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
+              style={{ cursor: 'pointer', fontSize: 18 }}
+            >
+              {themeMode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+            </span>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Space style={{ cursor: 'pointer' }}>
                 <UserOutlined />
@@ -223,6 +233,12 @@ const MainLayout = ({ children }) => {
             >
               <GithubOutlined />
             </a>
+            <span
+              onClick={() => updateThemeMode(themeMode === 'dark' ? 'light' : 'dark')}
+              style={{ cursor: 'pointer', fontSize: 18 }}
+            >
+              {themeMode === 'dark' ? <SunOutlined /> : <MoonOutlined />}
+            </span>
             <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
               <Space style={{ cursor: 'pointer' }}>
                 <UserOutlined />
