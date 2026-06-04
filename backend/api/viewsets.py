@@ -1819,8 +1819,15 @@ class UserPreferenceViewSet(viewsets.ViewSet):
         pref = UserPreference.objects.filter(user=request.user).first()
         preferred_source = pref.preferred_source if pref else 'eastmoney'
         theme_mode = pref.theme_mode if pref else 'light'
+        report_enabled = pref.report_enabled if pref else False
+        report_frequency = pref.report_frequency if pref else 'monthly'
 
-        return Response({'preferred_source': preferred_source, 'theme_mode': theme_mode})
+        return Response({
+            'preferred_source': preferred_source,
+            'theme_mode': theme_mode,
+            'report_enabled': report_enabled,
+            'report_frequency': report_frequency,
+        })
 
     def update(self, request, pk=None):
         """
@@ -1831,26 +1838,23 @@ class UserPreferenceViewSet(viewsets.ViewSet):
 
         theme_mode = request.data.get('theme_mode')
         preferred_source = request.data.get('preferred_source')
+        report_enabled = request.data.get('report_enabled')
+        report_frequency = request.data.get('report_frequency')
 
-        # 检查 theme_mode
         if theme_mode and theme_mode not in dict(UserPreference.THEME_CHOICES):
-            return Response(
-                {'error': '无效的主题模式，可选值：light, dark'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
-        # 检查 preferred_source
+            return Response({'error': '无效的主题模式，可选值：light, dark'}, status=status.HTTP_400_BAD_REQUEST)
         if preferred_source and preferred_source not in self.VALID_SOURCES:
-            return Response(
-                {'error': f'无效的数据源，可选值：{", ".join(self.VALID_SOURCES)}'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({'error': f'无效的数据源，可选值：{", ".join(self.VALID_SOURCES)}'}, status=status.HTTP_400_BAD_REQUEST)
 
         defaults = {}
         if preferred_source:
             defaults['preferred_source'] = preferred_source
         if theme_mode:
             defaults['theme_mode'] = theme_mode
+        if report_enabled is not None:
+            defaults['report_enabled'] = report_enabled
+        if report_frequency:
+            defaults['report_frequency'] = report_frequency
 
         if not defaults:
             return Response(
@@ -1866,6 +1870,8 @@ class UserPreferenceViewSet(viewsets.ViewSet):
         return Response({
             'preferred_source': pref.preferred_source,
             'theme_mode': pref.theme_mode,
+            'report_enabled': pref.report_enabled,
+            'report_frequency': pref.report_frequency,
         })
 
 

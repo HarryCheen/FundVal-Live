@@ -498,6 +498,12 @@ class UserPreference(models.Model):
         choices=THEME_CHOICES,
         default='light',
     )
+    report_enabled = models.BooleanField(default=False, help_text='是否开启投资报告')
+    report_frequency = models.CharField(
+        max_length=30,
+        default='monthly',
+        help_text='逗号分隔: weekly,monthly,yearly',
+    )
 
     class Meta:
         db_table = 'user_preference'

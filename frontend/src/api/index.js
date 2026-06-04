@@ -117,6 +117,7 @@ export const aiAPI = {
     context_type: contextType,
     context_data: contextData,
   }, { timeout: 120000 }),
+  reportPreview: (period) => api.post('/ai/report-preview/', { period }, { timeout: 180000 }),
 };
 
 // 数据源凭证

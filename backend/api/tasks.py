@@ -6,6 +6,8 @@ Celery 任务
 from celery import shared_task
 from django.core.management import call_command
 import logging
+import requests
+from datetime import date
 
 logger = logging.getLogger(__name__)
 
@@ -251,3 +253,92 @@ def capture_intraday_snapshots():
 
     logger.info(f'已抓取 {count} 个基金的估值快照')
     return f'已抓取 {count} 个快照'
+
+
+@shared_task
+def generate_investment_reports():
+    """
+    定时生成投资报告
+
+    遍历所有开启了报告的用户，生成 AI 投资周报/月报/年报并推送。
+    根据用户设置的 report_frequency 判断是否应该生成（周报=周一，月报=1日，年报=1月1日）。
+    """
+    from django.contrib.auth import get_user_model
+    from api.models import AIConfig, UserPreference
+    from api.views import build_report_context, _replace_placeholders
+
+    today = date.today()
+    generated = 0
+    skip_ai = 0
+    skip_disabled = 0
+
+    for pref in UserPreference.objects.filter(report_enabled=True).select_related('user'):
+        user = pref.user
+
+        # 检查频率是否匹配今天（支持逗号分隔多选）
+        frequencies = [f.strip() for f in pref.report_frequency.split(',')]
+        should_run = False
+        if 'weekly' in frequencies and today.weekday() == 0:
+            should_run = True
+        if 'monthly' in frequencies and today.day == 1:
+            should_run = True
+        if 'yearly' in frequencies and today.month == 1 and today.day == 1:
+            should_run = True
+
+        if not should_run:
+            continue
+
+        ai_config = AIConfig.objects.filter(user=user).first()
+        if not ai_config:
+            skip_ai += 1
+            continue
+
+        try:
+            context_data = build_report_context(user, pref.report_frequency)
+            system_prompt = '你是一位专业的基金投资顾问，请根据提供的持仓数据，生成一份结构清晰、客观专业的投资报告。使用 Markdown 格式，报告标题下方标注生成日期。'
+            user_prompt = (
+                f'请根据以下数据生成一份投资报告（报告日期：{today.strftime("%Y年%m月%d日")}）：\n\n'
+                f'## 账户总览\n{context_data.get("account_summary", "")}\n\n'
+                f'## 持仓明细\n{context_data.get("position_summary", "")}\n\n'
+                f'## 期间表现\n{context_data.get("period_pnl", "")}\n\n'
+                f'## 表现最佳\n{context_data.get("top_performers", "")}\n\n'
+                f'## 表现最差\n{context_data.get("worst_performers", "")}\n'
+            )
+
+            endpoint = ai_config.api_endpoint.rstrip('/')
+            resp = requests.post(
+                f'{endpoint}/chat/completions',
+                headers={'Authorization': f'Bearer {ai_config.api_key}', 'Content-Type': 'application/json'},
+                json={'model': ai_config.model_name, 'messages': [
+                    {'role': 'system', 'content': system_prompt},
+                    {'role': 'user', 'content': user_prompt},
+                ]},
+                timeout=120,
+            )
+            resp.raise_for_status()
+            result = resp.json()
+            content = result['choices'][0]['message']['content']
+
+            # 推送报告到用户通知渠道
+            from api.models import NotificationChannel
+            from api.notifications import ChannelRegistry
+            channels = NotificationChannel.objects.filter(user=user, is_active=True)
+            for ch in channels:
+                impl = ChannelRegistry.get_channel(ch.channel_type)
+                if impl:
+                    try:
+                        impl.send(
+                            f'Fundval 投资{pref.report_frequency}报',
+                            content[:4000],  # 截断避免过长
+                            ch.config,
+                        )
+                    except Exception as e:
+                        logger.warning(f'推送报告到渠道 {ch.id} 失败: {e}')
+
+            generated += 1
+        except Exception as e:
+            logger.error(f'为用户 {user.username} 生成报告失败: {e}')
+
+    summary = f'{generated} reports generated, {skip_ai} skipped (no AI config), {skip_disabled} skipped (disabled)'
+    logger.info(summary)
+    return summary

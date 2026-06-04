@@ -58,6 +58,7 @@ urlpatterns = [
 
     # AI分析
     path('ai/analyze/', views.ai_analyze, name='ai_analyze'),
+    path('ai/report-preview/', views.ai_report_preview, name='ai_report_preview'),
 
     # 管理员
     path('admin/users/', viewsets.AdminViewSet.as_view({'get': 'list'})),

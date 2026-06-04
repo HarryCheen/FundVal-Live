@@ -1,12 +1,14 @@
 import { useState, useEffect, useRef } from 'react';
-import { Card, Form, Input, Button, message, Space, Divider, Tag, Image, Spin, Modal, Select, Table, Popconfirm, Typography, Alert, Switch, InputNumber, List, Grid } from 'antd';
+import { Card, Form, Input, Button, message, Space, Divider, Tag, Image, Spin, Modal, Select, Table, Popconfirm, Typography, Alert, Switch, InputNumber, List, Grid, Checkbox } from 'antd';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import {
   SaveOutlined, ReloadOutlined, CloudServerOutlined,
   QrcodeOutlined, CheckCircleOutlined, CloseCircleOutlined, LogoutOutlined, ImportOutlined,
   PlusOutlined, EditOutlined, DeleteOutlined, BellOutlined, SendOutlined,
 } from '@ant-design/icons';
 import { isNativeApp } from '../App';
-import { sourceAPI, aiAPI, fundsAPI, notificationChannelsAPI, notificationRulesAPI } from '../api';
+import { sourceAPI, aiAPI, fundsAPI, notificationChannelsAPI, notificationRulesAPI, preferencesAPI } from '../api';
 import { usePreference } from '../contexts/PreferenceContext';
 
 const { TextArea } = Input;
@@ -1189,6 +1191,16 @@ const SettingsPage = () => {
   const [form] = Form.useForm();
   const [loading, setLoading] = useState(false);
   const isNative = isNativeApp();
+  const [prefs, setPrefs] = useState({ report_enabled: false, report_frequency: 'monthly' });
+  const freqList = prefs.report_frequency ? prefs.report_frequency.split(',').filter(Boolean) : ['monthly'];
+  const [reportGenerating, setReportGenerating] = useState(false);
+  const [reportPreview, setReportPreview] = useState({ open: false, content: '' });
+
+  useEffect(() => {
+    preferencesAPI.get().then(res => {
+      setPrefs({ report_enabled: res.data.report_enabled || false, report_frequency: res.data.report_frequency || 'monthly' });
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (isNative) {
@@ -1293,6 +1305,66 @@ const SettingsPage = () => {
           </Form>
         </Card>
       )}
+
+      {/* 投资报告设置 */}
+      <Card title="投资报告" extra={
+        <Button type="primary" loading={reportGenerating}
+          onClick={() => {
+            setReportGenerating(true);
+            aiAPI.reportPreview('weekly')
+              .then(res => {
+                setReportPreview({ open: true, content: res.data.result });
+              })
+              .catch(err => message.error(err.response?.data?.error || '生成失败'))
+              .finally(() => setReportGenerating(false));
+          }}
+        >
+          立即生成周报
+        </Button>
+      }>
+        <Space direction="vertical" style={{ width: '100%' }}>
+          <Space>
+            <Switch checked={prefs.report_enabled} onChange={v => {
+              setPrefs(p => ({ ...p, report_enabled: v }));
+              preferencesAPI.update({ report_enabled: v });
+            }} />
+            <span>开启投资报告</span>
+          </Space>
+          {prefs.report_enabled && (
+            <Space direction="vertical">
+              <span>推送频率（可多选）：</span>
+              <Checkbox.Group value={freqList}
+                onChange={vals => {
+                  const v = vals.length > 0 ? vals.join(',') : 'monthly';
+                  setPrefs(p => ({ ...p, report_frequency: v }));
+                  preferencesAPI.update({ report_frequency: v });
+                }}
+              >
+                <Space>
+                  <Checkbox value="weekly">周报（每周一 9:00）</Checkbox>
+                  <Checkbox value="monthly">月报（每月 1 日 9:00）</Checkbox>
+                  <Checkbox value="yearly">年报（每年 1 月 1 日 9:00）</Checkbox>
+                </Space>
+              </Checkbox.Group>
+            </Space>
+          )}
+        </Space>
+      </Card>
+
+      <Modal title="投资报告预览" open={reportPreview.open}
+        onOk={() => setReportPreview({ open: false, content: '' })}
+        onCancel={() => setReportPreview({ open: false, content: '' })}
+        width={720}
+        footer={null}
+      >
+        <div style={{ maxHeight: '60vh', overflow: 'auto' }}>
+          {reportPreview.content ? (
+            <ReactMarkdown remarkPlugins={[remarkGfm]}>{reportPreview.content}</ReactMarkdown>
+          ) : (
+            <Spin style={{ display: 'block', textAlign: 'center', padding: 40 }} />
+          )}
+        </div>
+      </Modal>
 
       {!isNative && (
         <Card title="系统设置">

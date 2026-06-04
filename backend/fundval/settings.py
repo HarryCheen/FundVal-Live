@@ -216,5 +216,13 @@ CELERY_BEAT_SCHEDULE = {
         'task': 'api.tasks.capture_intraday_snapshots',
         'schedule': crontab(minute=5, hour=15),  # 15:05 收盘最后一抓
     },
+    'generate-weekly-report': {
+        'task': 'api.tasks.generate_investment_reports',
+        'schedule': crontab(minute=0, hour=9, day_of_week=1),  # 每周一 9:00
+    },
+    'generate-monthly-report': {
+        'task': 'api.tasks.generate_investment_reports',
+        'schedule': crontab(minute=0, hour=9, day_of_month=1),  # 每月 1 日 9:00
+    },
 }
 
