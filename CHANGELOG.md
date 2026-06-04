@@ -16,6 +16,26 @@
 
 ---
 
+## [v2.4.0] - 2026-06-04
+
+### Added
+
+- **夜间模式**：全局暗色主题切换，支持浅色/深色两种主题
+  - 后端：`UserPreference` 新增 `theme_mode` 字段（`light` / `dark`）
+  - 前端：`ConfigProvider` 接入 Ant Design 5 `darkAlgorithm`，头部太阳/月亮切换按钮
+  - 主题偏好持久化到后端，刷新不丢失
+
+### Changed
+
+- **全站暗色模式兼容**：所有硬编码颜色（`#fff`、`#f0f0f0`、`#f0f2f5`）替换为 Ant Design token（`colorBgContainer`、`colorBgLayout`、`colorBorderSecondary`），覆盖 15 个文件
+- **AdminPage 移动端适配**：移动端用户列表切换为卡片布局，任务按钮自动折行，搜索栏全宽
+
+### Fixed
+
+- **AccountContext 未处理异常**：`loadAccounts` 移除多余的 `throw err`，修复测试中的 unhandled rejection
+
+---
+
 ## [v2.3.0] - 2026-06-04
 
 ### Added
