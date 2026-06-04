@@ -64,7 +64,7 @@ function InitializePage() {
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
-    background: '#f0f2f5',
+    background: token.colorBgLayout,
   };
 
   const cardStyle = {
@@ -216,7 +216,7 @@ function InitializePage() {
 
                 <Divider style={{ margin: '12px 0 24px' }} />
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, padding: 12, background: '#fafafa', borderRadius: token.borderRadius }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, padding: 12, background: token.colorFillAlter, borderRadius: token.borderRadius }}>
                   <div>
                     <div style={{ fontWeight: 500 }}>开放注册</div>
                     <div style={{ fontSize: 12, color: 'rgba(0,0,0,0.45)' }}>是否允许其他人注册账户</div>

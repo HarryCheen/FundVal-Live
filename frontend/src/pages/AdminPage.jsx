@@ -1,11 +1,14 @@
 import { useState, useEffect } from 'react';
-import { Card, Table, Button, Input, Tag, message, Modal, Space, Typography, Row, Col, Statistic } from 'antd';
-import { SearchOutlined, ReloadOutlined, LockOutlined, StopOutlined, CheckCircleOutlined, SyncOutlined, BarChartOutlined } from '@ant-design/icons';
+import { Card, Table, Button, Input, Tag, message, Modal, Space, Typography, Row, Col, Statistic, List, Grid } from 'antd';
+import { SearchOutlined, ReloadOutlined, LockOutlined, StopOutlined, CheckCircleOutlined, SyncOutlined, BarChartOutlined, UserOutlined, MailOutlined, ClockCircleOutlined } from '@ant-design/icons';
 import { adminAPI } from '../api';
 
 const { Text } = Typography;
+const { useBreakpoint } = Grid;
 
 const AdminPage = () => {
+  const screens = useBreakpoint();
+  const isMobile = !screens.md;
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [total, setTotal] = useState(0);
@@ -142,69 +145,129 @@ const AdminPage = () => {
               />
             </Col>
           </Row>
-          <Row gutter={16} style={{ marginTop: 12 }}>
-            <Col>
-              <Button
-                icon={<SyncOutlined />}
-                loading={taskLoading.update_fund_nav}
-                onClick={() => handleTriggerTask('update_fund_nav', '同步全部净值')}
-              >
-                同步全部净值
-              </Button>
-            </Col>
-            <Col>
-              <Button
-                icon={<SyncOutlined />}
-                loading={taskLoading.update_fund_today_nav}
-                onClick={() => handleTriggerTask('update_fund_today_nav', '同步当日净值')}
-              >
-                同步当日净值
-              </Button>
-            </Col>
-            <Col>
-              <Button
-                loading={taskLoading.recalculate_positions}
-                onClick={() => handleTriggerTask('recalculate_positions', '重算全部持仓')}
-              >
-                重算全部持仓
-              </Button>
-            </Col>
-          </Row>
+          <Space wrap style={{ marginTop: 12 }}>
+            <Button
+              icon={<SyncOutlined />}
+              loading={taskLoading.update_fund_nav}
+              onClick={() => handleTriggerTask('update_fund_nav', '同步全部净值')}
+            >
+              同步全部净值
+            </Button>
+            <Button
+              icon={<SyncOutlined />}
+              loading={taskLoading.update_fund_today_nav}
+              onClick={() => handleTriggerTask('update_fund_today_nav', '同步当日净值')}
+            >
+              同步当日净值
+            </Button>
+            <Button
+              loading={taskLoading.recalculate_positions}
+              onClick={() => handleTriggerTask('recalculate_positions', '重算全部持仓')}
+            >
+              重算全部持仓
+            </Button>
+          </Space>
         </Card>
       )}
 
       <Card
         title="用户管理"
         extra={
-          <Space>
+          isMobile ? null : (
+            <Space>
+              <Input.Search
+                placeholder="搜索用户名"
+                allowClear
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                onSearch={val => { setPage(1); loadUsers(1, val); }}
+                style={{ width: 200 }}
+                prefix={<SearchOutlined />}
+              />
+              <Button icon={<ReloadOutlined />} onClick={() => loadUsers(page, search)}>刷新</Button>
+            </Space>
+          )
+        }
+      >
+        {isMobile && (
+          <Space style={{ marginBottom: 12, width: '100%' }} direction="vertical">
             <Input.Search
               placeholder="搜索用户名"
               allowClear
               value={search}
               onChange={e => setSearch(e.target.value)}
               onSearch={val => { setPage(1); loadUsers(1, val); }}
-              style={{ width: 200 }}
               prefix={<SearchOutlined />}
             />
-            <Button icon={<ReloadOutlined />} onClick={() => loadUsers(page, search)}>刷新</Button>
           </Space>
-        }
-      >
-        <Table
-          columns={columns}
-          dataSource={users}
-          rowKey="id"
-          loading={loading}
-          pagination={{
-            current: page,
-            total,
-            pageSize: 20,
-            showSizeChanger: false,
-            showTotal: t => `共 ${t} 个用户`,
-            onChange: p => { setPage(p); loadUsers(p, search); },
-          }}
-          scroll={{ x: 'max-content' }}
-        />
+        )}
+        {isMobile ? (
+          <List
+            dataSource={users}
+            loading={loading}
+            pagination={{
+              current: page,
+              total,
+              pageSize: 20,
+              showSizeChanger: false,
+              onChange: p => { setPage(p); loadUsers(p, search); },
+            }}
+            renderItem={user => (
+              <Card size="small" style={{ marginBottom: 8 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 500, marginBottom: 4 }}>
+                      {user.username}
+                      <Tag color={user.role === 'admin' ? 'red' : 'blue'} style={{ marginLeft: 8 }}>
+                        {user.role === 'admin' ? '管理员' : '用户'}
+                      </Tag>
+                      <Tag color={user.is_active ? 'green' : 'red'}>
+                        {user.is_active ? '正常' : '已禁用'}
+                      </Tag>
+                    </div>
+                    <div style={{ color: '#999', fontSize: 12 }}>
+                      <MailOutlined style={{ marginRight: 4 }} />{user.email || '无邮箱'}
+                    </div>
+                    <div style={{ color: '#999', fontSize: 12, marginTop: 2 }}>
+                      <ClockCircleOutlined style={{ marginRight: 4 }} />
+                      {user.date_joined ? new Date(user.date_joined).toLocaleDateString('zh-CN') : '-'}
+                    </div>
+                  </div>
+                  <Space direction="vertical" size="small">
+                    <Button
+                      size="small"
+                      icon={user.is_active ? <StopOutlined /> : <CheckCircleOutlined />}
+                      danger={user.is_active}
+                      onClick={() => handleToggle(user)}
+                      block
+                    >
+                      {user.is_active ? '禁用' : '启用'}
+                    </Button>
+                    <Button size="small" icon={<LockOutlined />} onClick={() => handleResetPassword(user)} block>
+                      重置密码
+                    </Button>
+                  </Space>
+                </div>
+              </Card>
+            )}
+          />
+        ) : (
+          <Table
+            columns={columns}
+            dataSource={users}
+            rowKey="id"
+            loading={loading}
+            pagination={{
+              current: page,
+              total,
+              pageSize: 20,
+              showSizeChanger: false,
+              showTotal: t => `共 ${t} 个用户`,
+              onChange: p => { setPage(p); loadUsers(p, search); },
+            }}
+            scroll={{ x: 'max-content' }}
+          />
+        )}
       </Card>
 
       <Modal

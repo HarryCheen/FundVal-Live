@@ -14,10 +14,6 @@ vi.mock('../api', () => ({
   },
 }));
 
-vi.mock('../contexts/PreferenceContext', () => ({
-  usePreference: () => ({ preferredSource: 'eastmoney' }),
-}));
-
 const mockAccounts = [
   {
     id: 1,
@@ -93,16 +89,18 @@ describe('AccountsPage 移动端', () => {
   it('显示父账户卡片', async () => {
     render(<BrowserRouter><AccountsPage /></BrowserRouter>);
     await waitFor(() => {
-      expect(screen.getByText('全部账户汇总')).toBeInTheDocument();
-    });
-    fireEvent.click(screen.getByText('全部账户汇总'));
-    await waitFor(() => {
+      // 默认显示全部账户汇总，父账户卡片应在 all-accounts-summary 视图中
       expect(screen.getAllByTestId('parent-account-card').length).toBeGreaterThan(0);
     }, { timeout: 3000 });
   });
 
   it('显示子账户卡片', async () => {
     render(<BrowserRouter><AccountsPage /></BrowserRouter>);
+    // 默认全部账户汇总视图，需切换到单账户视图看子账户
+    await waitFor(() => {
+      expect(screen.getByTestId('all-accounts-summary-button')).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId('all-accounts-summary-button'));
     await waitFor(() => {
       expect(screen.getAllByTestId('child-account-card').length).toBeGreaterThan(0);
     }, { timeout: 3000 });

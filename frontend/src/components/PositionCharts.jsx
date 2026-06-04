@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Tabs, Radio, Empty, Spin, message, Grid } from 'antd';
+import { Card, Tabs, Radio, Empty, Spin, message, Grid, theme } from 'antd';
 import {
   LineChart,
   Line,
@@ -22,6 +22,7 @@ const { useBreakpoint } = Grid;
 const PositionCharts = ({ positions, accountId }) => {
   const screens = useBreakpoint();
   const isMobile = !screens.md;
+  const { token } = theme.useToken();
   const [timeRange, setTimeRange] = useState('30d'); // 30d, 90d, all
   const [historyData, setHistoryData] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
@@ -133,10 +134,11 @@ const PositionCharts = ({ positions, accountId }) => {
     if (active && payload && payload.length) {
       return (
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: token.colorBgElevated,
           padding: '10px',
-          border: '1px solid #ccc',
-          borderRadius: '4px',
+          border: `1px solid ${token.colorBorderSecondary}`,
+          borderRadius: token.borderRadius,
+          color: token.colorText,
         }}>
           <p style={{ margin: 0 }}>{label}</p>
           {payload.map((entry, index) => (
@@ -156,10 +158,11 @@ const PositionCharts = ({ positions, accountId }) => {
       const data = payload[0].payload;
       return (
         <div style={{
-          backgroundColor: 'white',
+          backgroundColor: token.colorBgElevated,
           padding: '10px',
-          border: '1px solid #ccc',
-          borderRadius: '4px',
+          border: `1px solid ${token.colorBorderSecondary}`,
+          borderRadius: token.borderRadius,
+          color: token.colorText,
         }}>
           <p style={{ margin: 0 }}>{data.name}</p>
           <p style={{ margin: '5px 0' }}>金额: ¥{data.value.toFixed(2)}</p>

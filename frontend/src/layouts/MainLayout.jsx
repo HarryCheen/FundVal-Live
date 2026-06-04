@@ -1,4 +1,4 @@
-import { Layout, Menu, Dropdown, Space, Grid } from 'antd';
+import { Layout, Menu, Dropdown, Space, Grid, theme } from 'antd';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   FundOutlined,
@@ -25,6 +25,7 @@ const MainLayout = ({ children }) => {
   const { user, logout } = useAuth();
   const { themeMode, updateThemeMode } = usePreference();
   const screens = useBreakpoint();
+  const { token } = theme.useToken();
 
   // 判断是否为移动端（< 768px）
   const isMobile = !screens.md;
@@ -87,13 +88,13 @@ const MainLayout = ({ children }) => {
         {/* 顶部导航栏 */}
         <Header
           style={{
-            background: '#fff',
+            background: token.colorBgContainer,
             padding: '0 16px',
             paddingTop: 'env(safe-area-inset-top)',
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            borderBottom: '1px solid #f0f0f0',
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
             position: 'fixed',
             top: 0,
             left: 0,
@@ -133,7 +134,7 @@ const MainLayout = ({ children }) => {
             marginTop: 'calc(56px + env(safe-area-inset-top))',
             marginBottom: 'calc(56px + env(safe-area-inset-bottom))',
             padding: 12,
-            background: '#f0f2f5',
+            background: token.colorBgLayout,
             minHeight: 'calc(100vh - 112px - env(safe-area-inset-top) - env(safe-area-inset-bottom))',
           }}
         >
@@ -148,8 +149,8 @@ const MainLayout = ({ children }) => {
             bottom: 0,
             left: 0,
             right: 0,
-            background: '#fff',
-            borderTop: '1px solid #f0f0f0',
+            background: token.colorBgContainer,
+            borderTop: `1px solid ${token.colorBorderSecondary}`,
             zIndex: 1000,
             height: 'calc(56px + env(safe-area-inset-bottom))',
             paddingBottom: 'env(safe-area-inset-bottom)',
@@ -194,10 +195,10 @@ const MainLayout = ({ children }) => {
             padding: '0 16px',
             fontSize: 16,
             fontWeight: 'bold',
-            borderBottom: '1px solid #f0f0f0',
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
           }}
         >
-          <FundOutlined style={{ fontSize: 24, color: '#1890ff', marginRight: 12 }} />
+          <FundOutlined style={{ fontSize: 24, color: token.colorPrimary, marginRight: 12 }} />
           <span>Fundval</span>
         </div>
         <Menu
@@ -211,12 +212,12 @@ const MainLayout = ({ children }) => {
       <Layout style={{ marginLeft: 200 }}>
         <Header
           style={{
-            background: '#fff',
+            background: token.colorBgContainer,
             padding: '0 24px',
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
-            borderBottom: '1px solid #f0f0f0',
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
             position: 'fixed',
             top: 0,
             right: 0,
@@ -247,7 +248,7 @@ const MainLayout = ({ children }) => {
             </Dropdown>
           </Space>
         </Header>
-        <Content style={{ marginTop: 64, padding: 24, background: '#f0f2f5', minHeight: 'calc(100vh - 64px)' }}>
+        <Content style={{ marginTop: 64, padding: 24, background: token.colorBgLayout, minHeight: 'calc(100vh - 64px)' }}>
           {children}
         </Content>
         <Footer />
